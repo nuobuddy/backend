@@ -1,11 +1,14 @@
+import 'reflect-metadata';
 import express, {
   Express, NextFunction, Request, Response,
 } from 'express';
 import { sendNotFound, sendServerError } from '@/lib/response';
 import router from '@/routes';
+import { AppDataSource } from '@/config/database';
+import { env } from '@/config/env';
 
 const app: Express = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.node.port;
 
 // Body parsers
 app.use(express.json());
@@ -25,8 +28,16 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void =>
   sendServerError(res, err.message);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+AppDataSource.initialize()
+  .then(() => {
+    console.log('Database connection established.');
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT} [${env.node.env}]`);
+    });
+  })
+  .catch((err: Error) => {
+    console.error('Failed to connect to database:', err.message);
+    process.exit(1);
+  });
 
 export default app;
