@@ -1,4 +1,6 @@
-import express, { Express, NextFunction, Request, Response } from 'express';
+import express, {
+  Express, NextFunction, Request, Response,
+} from 'express';
 import { sendNotFound, sendServerError } from '@/lib/response';
 import router from '@/routes';
 

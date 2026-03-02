@@ -1,4 +1,6 @@
-import { IRouter, Router, Request, Response } from 'express';
+import {
+  IRouter, Router, Request, Response,
+} from 'express';
 import { sendSuccess } from '@/lib/response';
 
 const router: IRouter = Router();
