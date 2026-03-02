@@ -1,0 +1,27 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+# TypeScript type check
+echo "[1/2] Running type check..."
+pnpm type-check
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "ERROR: TypeScript type check failed."
+  echo "Please fix all type errors before committing."
+  exit 1
+fi
+
+# ESLint check
+echo "[2/2] Running lint check..."
+pnpm lint
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "ERROR: ESLint check failed."
+  echo "Please fix all lint errors before committing."
+  echo "  Run 'pnpm lint:fix' to auto-fix fixable issues."
+  exit 1
+fi
+
+echo ""
+echo "Pre-commit checks passed."

@@ -1,0 +1,37 @@
+#!/bin/sh
+
+commit_msg=$(cat "$1")
+
+# Accept git flow conventional formats and Merge commits
+pattern="^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .+$|^Merge .+"
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo ""
+  echo "ERROR: Invalid commit message format."
+  echo ""
+  echo "Expected format:"
+  echo "  <type>(<scope>): <description>"
+  echo "  Merge <source> into <target>"
+  echo ""
+  echo "Allowed types:"
+  echo "  feat     - New feature"
+  echo "  fix      - Bug fix"
+  echo "  docs     - Documentation changes"
+  echo "  style    - Code style changes (formatting, no logic)"
+  echo "  refactor - Code refactoring"
+  echo "  perf     - Performance improvements"
+  echo "  test     - Test additions or corrections"
+  echo "  chore    - Build process or tooling changes"
+  echo "  ci       - CI/CD configuration changes"
+  echo "  build    - Build system changes"
+  echo "  revert   - Reverting a previous commit"
+  echo ""
+  echo "Examples:"
+  echo "  feat: add user authentication"
+  echo "  fix(auth): resolve token expiry issue"
+  echo "  docs: update API documentation"
+  echo "  Merge feature/login into develop"
+  echo ""
+  echo "Your commit message: $commit_msg"
+  exit 1
+fi
