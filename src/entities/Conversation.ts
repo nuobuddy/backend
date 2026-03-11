@@ -22,7 +22,7 @@ export class Conversation {
   @ManyToOne(() => User, (u) => u.conversations, { onDelete: 'CASCADE' })
     user!: User;
 
-  @Column()
+  @Column({ type: 'uuid' })
     userId!: string;
 
   @CreateDateColumn()
