@@ -1,4 +1,7 @@
 import { DataSource } from 'typeorm';
+import { User } from '@/entities/User';
+import { Conversation } from '@/entities/Conversation';
+import { SystemSetting } from '@/entities/SystemSetting';
 import { env } from './env';
 
 /**
@@ -17,6 +20,6 @@ export const AppDataSource = new DataSource({
   ssl: env.db.ssl ? { rejectUnauthorized: false } : false,
   synchronize: env.db.synchronize,
   logging: env.db.logging,
-  entities: [],
+  entities: [User, Conversation, SystemSetting],
   migrations: [],
 });

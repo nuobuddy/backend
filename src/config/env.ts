@@ -20,4 +20,8 @@ export const env = {
     synchronize: process.env.DB_SYNCHRONIZE === 'true',
     logging: process.env.DB_LOGGING === 'true',
   },
+  jwt: {
+    secret: process.env.JWT_SECRET ?? '',
+    expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+  },
 } as const;
