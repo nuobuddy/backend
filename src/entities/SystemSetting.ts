@@ -7,7 +7,7 @@ import {
 
 @Entity('system_settings')
 export class SystemSetting {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
     key!: string;
 
   @Column({ type: 'text' })

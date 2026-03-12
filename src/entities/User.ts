@@ -13,19 +13,19 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, type: 'varchar' })
     username!: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, type: 'varchar' })
     email!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
     passwordHash!: string;
 
-  @Column({ default: 'user' })
+  @Column({ default: 'user', type: 'varchar' })
     role!: 'user' | 'admin';
 
-  @Column({ default: true })
+  @Column({ default: true, type: 'boolean' })
     isActive!: boolean;
 
   @CreateDateColumn()
