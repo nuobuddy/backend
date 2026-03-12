@@ -37,6 +37,14 @@ export function sendError(res: Response, message?: string, statusCode = 400): vo
 }
 
 /**
+ * Send a 400 Bad Request response.
+ */
+export function sendBadRequest(res: Response, message = 'Bad Request'): void {
+  const response: ApiResponse = { status: 400, message };
+  res.status(400).json(response);
+}
+
+/**
  * Send a 404 Not Found response.
  */
 export function sendNotFound(res: Response, message = 'Not Found'): void {
