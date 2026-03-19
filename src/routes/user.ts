@@ -97,6 +97,26 @@ router.get('/me', authRequired, asyncHandler(async (req: Request, res: Response)
 }));
 
 /**
+ * GET /user/profile
+ * Same as /user/me for profile retrieval.
+ */
+router.get('/profile', authRequired, asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    sendError(res, 'unauthorized', 401);
+    return;
+  }
+
+  const user = await UserService.findById(userId);
+  if (!user) {
+    sendError(res, 'user not found', 404);
+    return;
+  }
+
+  sendSuccess(res, { user });
+}));
+
+/**
  * PUT /user/me
  * Body: { username?, email? }
  */
@@ -148,6 +168,59 @@ router.put('/me', authRequired, asyncHandler(async (req: Request, res: Response)
   const saved = await userRepo.save(user);
   const publicUser = await UserService.findById(saved.id);
   sendSuccess(res, { user: publicUser });
+}));
+
+/**
+ * POST /user/updateProfile
+ * Body: { username?, password? }
+ */
+router.post('/updateProfile', authRequired, asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    sendError(res, 'unauthorized', 401);
+    return;
+  }
+
+  const { username, password } = req.body as {
+    username?: string;
+    password?: string;
+  };
+
+  if (!username && !password) {
+    sendError(res, 'username or password is required', 400);
+    return;
+  }
+  if (password && password.length < 6) {
+    sendError(res, 'password must be at least 6 characters', 400);
+    return;
+  }
+
+  const userRepo = AppDataSource.getRepository(User);
+  const user = await userRepo.findOne({ where: { id: userId } });
+  if (!user) {
+    sendError(res, 'user not found', 404);
+    return;
+  }
+
+  if (username && username !== user.username) {
+    const usernameExists = await userRepo.findOne({ where: { username } });
+    if (usernameExists) {
+      sendError(res, 'username already in use', 409);
+      return;
+    }
+    user.username = username;
+  }
+
+  if (password) {
+    await UserService.resetPassword(user.id, password);
+    const publicUser = await UserService.findById(user.id);
+    sendSuccess(res, { user: publicUser }, 'profile updated');
+    return;
+  }
+
+  const saved = await userRepo.save(user);
+  const publicUser = await UserService.findById(saved.id);
+  sendSuccess(res, { user: publicUser }, 'profile updated');
 }));
 
 export default router;
