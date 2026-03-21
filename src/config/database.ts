@@ -1,6 +1,9 @@
-import { DataSource } from "typeorm";
-import { env } from "./env";
-import { SystemSetting } from "../entities/SystemSetting";
+import { DataSource } from 'typeorm';
+import { User } from '@/entities/User';
+import { Conversation } from '@/entities/Conversation';
+import { SystemSetting } from '@/entities/SystemSetting';
+import { InitialSchema } from '@/migrations/InitialSchema';
+import { env } from './env';
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -12,6 +15,6 @@ export const AppDataSource = new DataSource({
   ssl: env.db.ssl ? { rejectUnauthorized: false } : false,
   synchronize: env.db.synchronize,
   logging: env.db.logging,
-  entities: [SystemSetting],
-  migrations: [],
+  entities: [User, Conversation, SystemSetting],
+  migrations: [InitialSchema],
 });
