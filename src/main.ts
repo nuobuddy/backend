@@ -41,3 +41,7 @@ AppDataSource.initialize()
   });
 
 export default app;
+
+import settingsRoutes from "./routes/settings"
+
+app.use("/api", settingsRoutes)
