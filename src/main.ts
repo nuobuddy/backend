@@ -7,6 +7,8 @@ import router from '@/routes';
 import { AppDataSource } from '@/config/database';
 import { env } from '@/config/env';
 
+import settingsRoutes from './routes/settings';
+
 const app: Express = express();
 const PORT = env.node.port;
 
@@ -42,6 +44,4 @@ AppDataSource.initialize()
 
 export default app;
 
-import settingsRoutes from "./routes/settings"
-
-app.use("/api", settingsRoutes)
+app.use('/api', settingsRoutes);

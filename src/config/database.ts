@@ -6,7 +6,7 @@ import { InitialSchema } from '@/migrations/InitialSchema';
 import { env } from './env';
 
 export const AppDataSource = new DataSource({
-  type: "postgres",
+  type: 'postgres',
   host: env.db.host,
   port: env.db.port,
   username: env.db.username,
