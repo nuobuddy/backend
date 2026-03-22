@@ -2,14 +2,9 @@ import { DataSource } from 'typeorm';
 import { User } from '@/entities/User';
 import { Conversation } from '@/entities/Conversation';
 import { SystemSetting } from '@/entities/SystemSetting';
+import { InitialSchema } from '@/migrations/InitialSchema';
 import { env } from './env';
 
-/**
- * TypeORM DataSource instance.
- * Entities and migrations are registered here as they are added.
- *
- * Call `AppDataSource.initialize()` once at application startup.
- */
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: env.db.host,
@@ -21,5 +16,5 @@ export const AppDataSource = new DataSource({
   synchronize: env.db.synchronize,
   logging: env.db.logging,
   entities: [User, Conversation, SystemSetting],
-  migrations: [],
+  migrations: [InitialSchema],
 });

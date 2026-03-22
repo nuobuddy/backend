@@ -6,6 +6,9 @@ import { sendNotFound, sendServerError } from '@/lib/response';
 import router from '@/routes';
 import { AppDataSource } from '@/config/database';
 import { env } from '@/config/env';
+import morgan from 'morgan';
+
+import settingsRoutes from './routes/settings';
 
 const app: Express = express();
 const PORT = env.node.port;
@@ -13,6 +16,9 @@ const PORT = env.node.port;
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Request logging (dev only)
+app.use(morgan('dev'));
 
 // Mount routes
 app.use(router);
@@ -41,3 +47,5 @@ AppDataSource.initialize()
   });
 
 export default app;
+
+app.use('/api', settingsRoutes);
