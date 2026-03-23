@@ -24,4 +24,8 @@ export const env = {
     secret: process.env.JWT_SECRET ?? '',
     expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   },
+  dify: {
+    baseUrl: process.env.DIFY_BASE_URL ?? '',
+    apiKey: process.env.DIFY_API_KEY ?? '',
+  },
 } as const;
