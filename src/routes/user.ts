@@ -60,7 +60,9 @@ function toProfileUser(user: {
  * Body: { username, email, password }
  */
 router.post('/register', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { username, email, password, code } = req.body as {
+  const {
+    username, email, password, code,
+  } = req.body as {
     username?: string;
     email?: string;
     password?: string;
