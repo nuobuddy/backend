@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { sendError } from '@/lib/response';
 import { AuthService } from '@/services/AuthService';
+import type { JwtPayload } from '@/types/express';
+
+export interface AuthRequest extends Request {
+  user?: JwtPayload;
+}
 
 export function authRequired(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;

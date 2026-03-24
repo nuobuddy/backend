@@ -60,14 +60,15 @@ function toProfileUser(user: {
  * Body: { username, email, password }
  */
 router.post('/register', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { username, email, password } = req.body as {
+  const { username, email, password, code } = req.body as {
     username?: string;
     email?: string;
     password?: string;
+    code?: string;
   };
 
-  if (!username || !email || !password) {
-    sendError(res, 'username, email, password are required', 400);
+  if (!username || !email || !password || !code) {
+    sendError(res, 'username, email, password, code are required', 400);
     return;
   }
   if (!isValidEmail(email)) {
@@ -80,6 +81,12 @@ router.post('/register', asyncHandler(async (req: Request, res: Response): Promi
   }
 
   try {
+    const codeOk = await EmailService.verifyCode(email, code, 'register');
+    if (!codeOk) {
+      sendError(res, 'invalid or expired verification code', 400);
+      return;
+    }
+
     const user = await UserService.register(username, email, password);
     const token = AuthService.signToken({ userId: user.id, role: user.role });
     sendSuccess(res, { token, user: toAuthUser(user) }, 'Registration successful');
@@ -195,10 +202,10 @@ router.post('/profile/update', authRequired, asyncHandler(async (req: Request, r
  * Body: { email }
  */
 router.post('/send-code', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { email } = req.body as { email?: string };
+  const { email, type } = req.body as { email?: string; type?: 'forgot-password' | 'register' };
 
-  if (!email) {
-    sendError(res, 'email is required', 400);
+  if (!email || !type) {
+    sendError(res, 'email and type are required', 400);
     return;
   }
   if (!isValidEmail(email)) {
@@ -206,14 +213,14 @@ router.post('/send-code', asyncHandler(async (req: Request, res: Response): Prom
     return;
   }
 
-  const hasRecent = await EmailService.hasRecentCode(email);
+  const hasRecent = await EmailService.hasRecentCode(email, type);
   if (hasRecent) {
     sendError(res, 'Please wait before requesting another code', 429);
     return;
   }
 
-  await EmailService.sendPasswordResetCode(email);
-  sendSuccess(res, null, 'If the email exists, a verification code has been sent');
+  const code = await EmailService.sendVerificationCode(email, type);
+  sendSuccess(res, { code }, 'If the email exists, a verification code has been sent');
 }));
 
 /**
@@ -240,7 +247,7 @@ router.post('/forgot-password', asyncHandler(async (req: Request, res: Response)
     return;
   }
 
-  const isValid = await EmailService.verifyPasswordResetCode(email, code);
+  const isValid = await EmailService.verifyCode(email, code, 'forgot-password');
   if (!isValid) {
     sendError(res, 'invalid or expired verification code', 400);
     return;

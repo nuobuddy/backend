@@ -2,6 +2,7 @@ import { redis } from '@/config/redis';
 import { UserService } from './UserService';
 
 const VERIFICATION_CODE_EXPIRY = 300; // 5 minutes in seconds
+type VerificationType = 'forgot-password' | 'register';
 
 /**
  * Generate a 6-digit verification code.
@@ -15,25 +16,27 @@ function generateCode(): string {
  */
 export class EmailService {
   /**
-   * Send a password reset verification code to user's email.
+   * Send a verification code to user's email for a specific flow.
    * Returns the code (for development/testing - in production, send via email service).
    */
-  static async sendPasswordResetCode(email: string): Promise<string> {
-    const user = await UserService.findByEmail(email);
-    if (!user) {
-      // Don't reveal if email exists
-      return '';
+  static async sendVerificationCode(email: string, type: VerificationType): Promise<string> {
+    if (type === 'forgot-password') {
+      const user = await UserService.findByEmail(email);
+      if (!user) {
+        // Don't reveal if email exists
+        return '';
+      }
     }
 
     const code = generateCode();
-    const key = `password_reset:${email}`;
+    const key = `verification:${type}:${email}`;
 
     // Store code in Redis with 5-minute expiry
     await redis.setex(key, VERIFICATION_CODE_EXPIRY, code);
 
     // TODO: Integrate with actual email service (SendGrid, AWS SES, etc.)
     // For now, log the code (remove in production)
-    console.log(`[DEV] Password reset code for ${email}: ${code}`);
+    console.log(`[DEV] ${type} code for ${email}: ${code}`);
 
     return code;
   }
@@ -42,11 +45,12 @@ export class EmailService {
    * Verify the password reset code.
    * Returns true if valid, false otherwise.
    */
-  static async verifyPasswordResetCode(
+  static async verifyCode(
     email: string,
     code: string,
+    type: VerificationType,
   ): Promise<boolean> {
-    const key = `password_reset:${email}`;
+    const key = `verification:${type}:${email}`;
     const storedCode = await redis.get(key);
 
     if (!storedCode) {
@@ -63,10 +67,10 @@ export class EmailService {
   }
 
   /**
-   * Check if a password reset code exists (for rate limiting).
+   * Check if a verification code exists (for rate limiting).
    */
-  static async hasRecentCode(email: string): Promise<boolean> {
-    const key = `password_reset:${email}`;
+  static async hasRecentCode(email: string, type: VerificationType): Promise<boolean> {
+    const key = `verification:${type}:${email}`;
     const exists = await redis.exists(key);
     return exists === 1;
   }
