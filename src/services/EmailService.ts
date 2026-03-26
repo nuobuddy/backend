@@ -1,4 +1,5 @@
 import { redis } from '@/config/redis';
+import { env } from '@/config/env';
 import { UserService } from './UserService';
 
 const VERIFICATION_CODE_EXPIRY = 300; // 5 minutes in seconds
@@ -38,9 +39,33 @@ export class EmailService {
     // Rate limit per email + type
     await redis.setex(rateKey, RATE_LIMIT_SECONDS, '1');
 
-    // TODO: Integrate with actual email service (SendGrid, AWS SES, etc.)
-    // For now, log the code (remove in production)
-    console.log(`[DEV] ${type} code for ${email}: ${code}`);
+    if (!env.smtpgo.host) {
+      throw new Error('SMTP_HOST is not configured');
+    }
+
+    const subject = 'Verification Code';
+    const body = code;
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (env.smtpgo.apiKey) {
+      headers['X-API-Key'] = env.smtpgo.apiKey;
+    }
+
+    const response = await fetch(`${env.smtpgo.host}/v1/mail/send`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        recipient_email: email,
+        subject,
+        body,
+        body_type: 'plain',
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`SMTPGo send failed: ${response.status} ${text}`);
+    }
 
     return code;
   }

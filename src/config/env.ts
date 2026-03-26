@@ -24,4 +24,8 @@ export const env = {
     secret: process.env.JWT_SECRET ?? '',
     expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   },
+  smtpgo: {
+    host: process.env.SMTP_HOST ?? '',
+    apiKey: process.env.SMTPGO_API_KEY ?? '',
+  },
 } as const;
