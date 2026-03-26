@@ -24,4 +24,9 @@ export const env = {
     secret: process.env.JWT_SECRET ?? '',
     expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   },
+  dify: {
+    // 数据库中的 system_settings 优先级更高；这里作为服务降级时的兜底来源。
+    baseUrl: process.env.DIFY_BASE_URL ?? 'http://dify.ibuduan.com/v1',
+    apiKey: process.env.DIFY_API_KEY ?? '',
+  },
 } as const;

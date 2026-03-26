@@ -1,12 +1,7 @@
 // src/services/DifyService.ts
 import { Response } from 'express';
 import { DifyStreamEvent } from '@/types/dify';
-// TODO: 恢复从 SettingService 动态读取 Dify 配置
-// import { SettingService } from './SettingService';
-
-// TODO: 临时硬编码，SettingService 完成后替换为动态读取
-const DIFY_BASE_URL = 'https://api.dify.ai';
-const DIFY_API_KEY = 'app-xxxxxxxxxxxxxxxx';
+import SettingService from './SettingService';
 
 export class DifyService {
   /**
@@ -19,14 +14,10 @@ export class DifyService {
     userId: string;
     clientRes: Response; // Express Response，用于写入 SSE
   }): Promise<{ difyConversationId: string }> {
-    // TODO: 恢复从 SettingService 动态读取
-    // const baseUrl = await SettingService.get('dify.base_url', 'https://api.dify.ai');
-    // const apiKey = await SettingService.get('dify.api_key');
-    // if (!apiKey) throw new Error('Dify API key not configured');
-    const baseUrl = DIFY_BASE_URL;
-    const apiKey = DIFY_API_KEY;
 
-    const difyRes = await fetch(`${baseUrl}/v1/chat-messages`, {
+    const { baseUrl, apiKey } = await SettingService.getDifyConfig();
+    const chatMessagesUrl = DifyService.buildChatMessagesUrl(baseUrl);
+    const difyRes = await fetch(chatMessagesUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -47,7 +38,14 @@ export class DifyService {
 
     return DifyService.pipeStream(difyRes, params.clientRes);
   }
+    private static buildChatMessagesUrl(baseUrl: string): string {
+      const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+      const apiBaseUrl = normalizedBaseUrl.endsWith('/v1')
+        ? normalizedBaseUrl
+        : `${normalizedBaseUrl}/v1`;
 
+    return `${apiBaseUrl}/chat-messages`;
+  }
   /**
    * 将 Dify 的 SSE 流解析并透传至客户端，处理各事件类型。
    * 返回本次对话的 difyConversationId。
