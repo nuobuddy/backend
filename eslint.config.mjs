@@ -3,6 +3,7 @@ import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import typescript from '@typescript-eslint/eslint-plugin'
 import parser from '@typescript-eslint/parser'
+import globals from 'globals'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -24,6 +25,9 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.json',
+      },
+      globals: {
+        ...globals.jest,
       },
     },
     plugins: {
