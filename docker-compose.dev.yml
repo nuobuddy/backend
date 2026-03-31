@@ -1,18 +1,4 @@
 services:
-  app:
-    build: .
-    container_name: nuobuddy-backend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
   postgres:
     image: postgres:16-alpine
     container_name: nuobuddy-postgres
