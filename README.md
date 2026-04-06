@@ -365,7 +365,7 @@ This starts the application on port 3000, PostgreSQL on port 5432, and Redis on 
 A: It cannot connect to PostgreSQL. Verify `DB_*` environment variables and that PostgreSQL is running.
 
 **Q: Chat streaming returns no events.**
-A: Check that `DIFY_API_KEY` and `DIFY_API_URL` are set correctly in `.env` and that the Dify application is published.
+A: Check the Dify API URL and API key in the system settings (via `GET /settings` / `PUT /settings` or the admin UI). These are stored in the database, not in `.env`.
 
 **Q: How do I create the first admin user?**
 A: Register a normal user via `POST /user/register`, then manually update the `role` column to `admin` in the database. Subsequent admins can be created via `POST /admin/users`.

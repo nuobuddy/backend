@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.1",
   "info": {
     "title": "Nuobuddy API",
     "description": "AI Agent Chatbot Backend API powered by Dify.ai. Provides user authentication, conversation management, and streaming chat integration with Dify.",
@@ -8,36 +8,33 @@
       "name": "Nuobuddy Team"
     }
   },
-  "servers": [
-    {
-      "url": "http://localhost:3000",
-      "description": "Development server"
-    }
-  ],
   "tags": [
     {
-      "name": "Health",
-      "description": "Health check endpoints"
+      "name": "Health"
     },
     {
-      "name": "User",
-      "description": "User authentication and profile management"
+      "name": "User"
     },
     {
-      "name": "Chat",
-      "description": "Chat conversation management"
+      "name": "Chat"
     },
     {
-      "name": "Admin",
-      "description": "Admin-only endpoints for system management"
+      "name": "Admin"
+    },
+    {
+      "name": "Common"
     }
   ],
   "paths": {
     "/health": {
       "get": {
-        "tags": ["Health"],
         "summary": "Health check",
+        "deprecated": false,
         "description": "Returns the current runtime health status of the server including uptime, memory usage, and timestamp.",
+        "tags": [
+          "Health"
+        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Server is healthy",
@@ -61,25 +58,36 @@
                   "message": "Success"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/user/register": {
       "post": {
-        "tags": ["User"],
         "summary": "Register a new user",
+        "deprecated": false,
         "description": "Creates a new user account. Password must be at least 6 characters.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -90,7 +98,8 @@
                   "$ref": "#/components/schemas/AuthResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Invalid request body",
@@ -100,25 +109,36 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/user/login": {
       "post": {
-        "tags": ["User"],
         "summary": "User login",
+        "deprecated": false,
         "description": "Authenticates a user with email and password. Returns a JWT token.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -129,7 +149,8 @@
                   "$ref": "#/components/schemas/AuthResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Missing credentials",
@@ -139,7 +160,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Invalid credentials",
@@ -149,17 +171,26 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/user/profile": {
       "get": {
-        "tags": ["User"],
         "summary": "Get current user profile",
+        "deprecated": false,
         "description": "Returns the profile of the authenticated user.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Profile retrieved successfully",
@@ -181,7 +212,8 @@
                   "message": "Success"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -191,24 +223,36 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
-      },
-      "put": {
-        "tags": ["User"],
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/user/profile/update": {
+      "post": {
         "summary": "Update user profile",
+        "deprecated": false,
         "description": "Updates the username and/or password of the authenticated user. At least one field must be provided.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateProfileRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -219,7 +263,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "No fields provided",
@@ -229,7 +274,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -239,25 +285,36 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/user/forgot-password": {
+    "/user/send-code": {
       "post": {
-        "tags": ["User"],
-        "summary": "Request password reset",
+        "summary": "Request verification code",
+        "deprecated": false,
         "description": "Sends a password reset verification code to the user's email. Rate limited to one request per 60 seconds. Always returns success to prevent email enumeration.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordRequest"
-              }
+                "$ref": "#/components/schemas/SendCodeRequest"
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -268,7 +325,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Email is required",
@@ -278,7 +336,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "429": {
             "description": "Rate limit exceeded",
@@ -288,25 +347,36 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/user/reset-password": {
+    "/user/forgot-password": {
       "post": {
-        "tags": ["User"],
         "summary": "Reset password",
+        "deprecated": false,
         "description": "Resets the user's password using a verification code sent via email.",
+        "tags": [
+          "User"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ResetPasswordRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -317,7 +387,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Invalid or expired verification code",
@@ -327,16 +398,26 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/chat": {
       "get": {
-        "tags": ["Chat"],
         "summary": "Chat API info",
+        "deprecated": false,
         "description": "Returns information about the Chat API endpoints.",
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Chat API information",
@@ -346,22 +427,31 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/chat/conversations": {
       "get": {
-        "tags": ["Chat"],
         "summary": "Get user's conversation list",
+        "deprecated": false,
         "description": "Returns a list of all conversations for the authenticated user, ordered by creation time (newest first).",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Chat"
+        ],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "Page number for pagination",
+            "required": false,
             "schema": {
               "type": "integer",
               "default": 1,
@@ -372,6 +462,7 @@
             "name": "limit",
             "in": "query",
             "description": "Number of conversations per page",
+            "required": false,
             "schema": {
               "type": "integer",
               "default": 10,
@@ -410,7 +501,8 @@
                   "message": "Success"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -420,21 +512,32 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "post": {
-        "tags": ["Chat"],
         "summary": "Create a new conversation",
+        "deprecated": false,
         "description": "Creates a new conversation for the authenticated user.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": false,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateConversationRequest"
+              },
+              "example": {
+                "title": "测试对话1"
               }
             }
           }
@@ -458,7 +561,8 @@
                   "message": "Success"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -468,29 +572,26 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/chat/conversations/{id}": {
-      "delete": {
-        "tags": ["Chat"],
+    "/chat/deleteConversations": {
+      "post": {
         "summary": "Delete a conversation",
+        "deprecated": false,
         "description": "Deletes a conversation and its associated messages. Only the conversation owner can delete it.",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "The conversation ID (UUID)",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
+        "tags": [
+          "Chat"
         ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Conversation deleted successfully",
@@ -500,7 +601,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -510,7 +612,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - not the conversation owner",
@@ -520,7 +623,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "Conversation not found",
@@ -530,37 +634,47 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/chat/conversations/{id}/message": {
       "post": {
-        "tags": ["Chat"],
         "summary": "Send a chat message (SSE streaming)",
+        "deprecated": false,
         "description": "Sends a message to the Dify AI agent and receives a streaming response via Server-Sent Events. The response is piped directly from Dify to the client in real-time.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Chat"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "required": true,
             "description": "The conversation ID (UUID). Use empty string for new conversation.",
+            "required": true,
+            "example": "",
             "schema": {
               "type": "string"
             }
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SendMessageRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -571,7 +685,8 @@
                   "$ref": "#/components/schemas/SSEStreamResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -581,22 +696,31 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/admin/users": {
+    "/admin/user": {
       "get": {
-        "tags": ["Admin"],
         "summary": "Get paginated user list",
+        "deprecated": false,
         "description": "Returns a paginated list of all users. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Admin"
+        ],
         "parameters": [
           {
             "name": "page",
             "in": "query",
             "description": "Page number",
+            "required": false,
             "schema": {
               "type": "integer",
               "default": 1,
@@ -607,6 +731,7 @@
             "name": "limit",
             "in": "query",
             "description": "Number of users per page",
+            "required": false,
             "schema": {
               "type": "integer",
               "default": 10,
@@ -646,7 +771,8 @@
                   "message": "Success"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -656,7 +782,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -666,24 +793,36 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
-      },
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/user/create": {
       "post": {
-        "tags": ["Admin"],
         "summary": "Create a new user",
+        "deprecated": false,
         "description": "Creates a new user account. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AdminCreateUserRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -694,7 +833,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Invalid request body",
@@ -704,7 +844,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -714,7 +855,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -724,29 +866,37 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/admin/users/{id}": {
-      "delete": {
-        "tags": ["Admin"],
+    "/admin/user/delete": {
+      "post": {
         "summary": "Delete a user",
+        "deprecated": false,
         "description": "Permanently deletes a user account. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "The user ID (UUID)",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "examples": {}
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "User deleted successfully",
@@ -756,7 +906,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -766,7 +917,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -776,7 +928,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "User not found",
@@ -786,23 +939,32 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/admin/users/{id}/password": {
-      "patch": {
-        "tags": ["Admin"],
+    "/admin/user/{id}/password": {
+      "post": {
         "summary": "Reset user password (admin)",
+        "deprecated": false,
         "description": "Resets a user's password to a new value. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Admin"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "required": true,
             "description": "The user ID (UUID)",
+            "required": true,
+            "example": "",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -810,14 +972,15 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AdminResetPasswordRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -828,7 +991,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Password must be at least 6 characters",
@@ -838,7 +1002,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -848,7 +1013,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -858,7 +1024,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "User not found",
@@ -868,23 +1035,32 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/admin/users/{id}/status": {
-      "patch": {
-        "tags": ["Admin"],
+    "/admin/user/{id}/status": {
+      "post": {
         "summary": "Update user status",
+        "deprecated": false,
         "description": "Enables or disables a user account. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Admin"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "required": true,
             "description": "The user ID (UUID)",
+            "required": true,
+            "example": "",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -892,14 +1068,15 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateUserStatusRequest"
-              }
+              },
+              "examples": {}
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -910,7 +1087,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "400": {
             "description": "Invalid isActive value",
@@ -920,7 +1098,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -930,7 +1109,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -940,7 +1120,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "404": {
             "description": "User not found",
@@ -950,17 +1131,26 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/admin/settings": {
       "get": {
-        "tags": ["Admin"],
         "summary": "Get all system settings",
+        "deprecated": false,
         "description": "Returns all system settings. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Settings retrieved successfully",
@@ -993,7 +1183,8 @@
                   "message": "Success"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -1003,7 +1194,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -1013,17 +1205,25 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "put": {
-        "tags": ["Admin"],
         "summary": "Update system settings",
+        "deprecated": false,
         "description": "Batch updates system settings. Uses upsert operation - keys that don't exist will be created. Requires admin role.",
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -1031,6 +1231,7 @@
                 "additionalProperties": {
                   "type": "string"
                 },
+                "properties": {},
                 "example": {
                   "dify.base_url": "https://api.dify.ai",
                   "dify.api_key": "app-xxxxxxxxxxxx",
@@ -1039,7 +1240,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1050,7 +1252,8 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "401": {
             "description": "Unauthorized",
@@ -1060,7 +1263,8 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           },
           "403": {
             "description": "Forbidden - admin role required",
@@ -1070,16 +1274,26 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/common": {
       "get": {
-        "tags": ["Common"],
         "summary": "Common API info",
+        "deprecated": false,
         "description": "Returns information about the Common API endpoints.",
+        "tags": [
+          "Common"
+        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Common API information",
@@ -1089,21 +1303,19 @@
                   "$ref": "#/components/schemas/ApiResponse"
                 }
               }
-            }
+            },
+            "headers": {}
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "JWT token obtained from /user/login"
-      }
-    },
     "schemas": {
       "ApiResponse": {
         "type": "object",
@@ -1114,8 +1326,9 @@
           },
           "data": {
             "type": "object",
-            "nullable": true,
-            "description": "Response data"
+            "description": "Response data",
+            "properties": {},
+            "nullable": true
           },
           "message": {
             "type": "string",
@@ -1142,7 +1355,11 @@
       },
       "RegisterRequest": {
         "type": "object",
-        "required": ["username", "email", "password"],
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
         "properties": {
           "username": {
             "type": "string",
@@ -1163,7 +1380,10 @@
       },
       "LoginRequest": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -1191,20 +1411,34 @@
           }
         }
       },
-      "ForgotPasswordRequest": {
+      "SendCodeRequest": {
         "type": "object",
-        "required": ["email"],
+        "required": [
+          "email",
+          "type"
+        ],
         "properties": {
           "email": {
             "type": "string",
             "format": "email",
             "description": "User email address"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "forgot-password",
+              "register"
+            ]
           }
         }
       },
       "ResetPasswordRequest": {
         "type": "object",
-        "required": ["email", "code", "newPassword"],
+        "required": [
+          "email",
+          "code",
+          "newPassword"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -1233,7 +1467,9 @@
       },
       "SendMessageRequest": {
         "type": "object",
-        "required": ["query"],
+        "required": [
+          "query"
+        ],
         "properties": {
           "query": {
             "type": "string",
@@ -1243,7 +1479,11 @@
       },
       "AdminCreateUserRequest": {
         "type": "object",
-        "required": ["username", "email", "password"],
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
         "properties": {
           "username": {
             "type": "string",
@@ -1262,7 +1502,10 @@
           },
           "role": {
             "type": "string",
-            "enum": ["user", "admin"],
+            "enum": [
+              "user",
+              "admin"
+            ],
             "default": "user",
             "description": "User role"
           }
@@ -1270,7 +1513,9 @@
       },
       "AdminResetPasswordRequest": {
         "type": "object",
-        "required": ["newPassword"],
+        "required": [
+          "newPassword"
+        ],
         "properties": {
           "newPassword": {
             "type": "string",
@@ -1281,7 +1526,9 @@
       },
       "UpdateUserStatusRequest": {
         "type": "object",
-        "required": ["isActive"],
+        "required": [
+          "isActive"
+        ],
         "properties": {
           "isActive": {
             "type": "boolean",
@@ -1317,7 +1564,10 @@
                   },
                   "role": {
                     "type": "string",
-                    "enum": ["user", "admin"]
+                    "enum": [
+                      "user",
+                      "admin"
+                    ]
                   }
                 }
               }
@@ -1349,7 +1599,10 @@
           },
           "role": {
             "type": "string",
-            "enum": ["user", "admin"]
+            "enum": [
+              "user",
+              "admin"
+            ]
           },
           "isActive": {
             "type": "boolean"
@@ -1374,13 +1627,13 @@
           },
           "title": {
             "type": "string",
-            "nullable": true,
-            "description": "Conversation title"
+            "description": "Conversation title",
+            "nullable": true
           },
           "difyConversationId": {
             "type": "string",
-            "nullable": true,
-            "description": "Dify's conversation ID (set after first message)"
+            "description": "Dify's conversation ID (set after first message)",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
@@ -1405,8 +1658,8 @@
           },
           "description": {
             "type": "string",
-            "nullable": true,
-            "description": "Optional description"
+            "description": "Optional description",
+            "nullable": true
           },
           "updatedAt": {
             "type": "string",
@@ -1414,6 +1667,21 @@
           }
         }
       }
+    },
+    "responses": {},
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from /user/login"
+      }
     }
-  }
+  },
+  "servers": [],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
 }
