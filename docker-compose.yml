@@ -21,10 +21,9 @@ services:
       POSTGRES_USER: nuobuddy
       POSTGRES_PASSWORD: nuobuddy
       POSTGRES_DB: nuobuddy
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nuobuddy -d nuobuddy"]
       interval: 5s
@@ -35,8 +34,6 @@ services:
     image: redis:7-alpine
     container_name: nuobuddy-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
