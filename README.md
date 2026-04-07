@@ -344,6 +344,31 @@ The production Docker image uses a multi-stage build (builder + slim runner on N
 - [ ] Configure a reverse proxy (nginx / Caddy) for TLS termination
 - [ ] Set up log aggregation and health monitoring
 
+#### nginx reverse proxy notes
+
+If you place nginx in front of the API, make sure it does not buffer streaming responses. The chat endpoint uses Server-Sent Events, so the proxy must keep the connection open and forward chunks immediately.
+
+Use a configuration similar to the following:
+
+```nginx
+location / {
+  proxy_pass http://127.0.0.1:3000;
+  proxy_http_version 1.1;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header Connection "";
+  proxy_buffering off;
+  proxy_cache off;
+  proxy_read_timeout 3600s;
+  proxy_send_timeout 3600s;
+  chunked_transfer_encoding on;
+}
+```
+
+For SSE endpoints such as `POST /chat/stream`, keep buffering disabled and avoid response compression that could delay event delivery. If you terminate TLS at nginx, pass the original scheme with `X-Forwarded-Proto` so authentication, redirects, and browser callbacks continue to work correctly.
+
 ### Running with Docker Compose
 
 ```bash

@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "prepare": "husky"
+    "prepare": "node -e \"try { require('child_process').execFileSync('husky', { stdio: 'inherit' }) } catch {}\""
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
