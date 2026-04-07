@@ -9,6 +9,7 @@ export const env = {
   node: {
     env: process.env.NODE_ENV ?? 'development',
     port: Number(process.env.PORT ?? 3000),
+    corsOrigin: process.env.CORS_ORIGIN ?? '*',
   },
   db: {
     host: process.env.DB_HOST ?? 'localhost',
@@ -23,5 +24,9 @@ export const env = {
   jwt: {
     secret: process.env.JWT_SECRET ?? '',
     expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+  },
+  smtpgo: {
+    host: process.env.SMTP_HOST ?? '',
+    apiKey: process.env.SMTPGO_API_KEY ?? '',
   },
 } as const;
