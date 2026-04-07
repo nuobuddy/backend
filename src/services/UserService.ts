@@ -126,7 +126,10 @@ export class UserService {
    * Public function: Reset user password.
    * Used by both user forgot-password flow and admin reset.
    */
-  static async resetPassword(userId: string, newPassword: string): Promise<void> {
+  static async resetPassword(
+    userId: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.findById(userId);
     if (!user) {
       throw new Error('User not found');
@@ -200,6 +203,13 @@ export class UserService {
     });
 
     return { users: safeUsers as User[], total };
+  }
+
+  /**
+   * Admin: Enable or disable a user account.
+   */
+  static async updateStatus(userId: string, isActive: boolean): Promise<void> {
+    await this.userRepository().update(userId, { isActive });
   }
 
   /**

@@ -707,6 +707,278 @@
         ]
       }
     },
+    "/chat/conversations/{id}/share": {
+      "post": {
+        "summary": "Create share link for conversation",
+        "deprecated": false,
+        "description": "Creates a shareable link for the conversation by setting the share field to true. Requires authentication and conversation ownership.",
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The conversation ID (UUID)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Share link created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "shareUrl": "https://example.com/chat/550e8400-e29b-41d4-a716-446655440000?share=1"
+                  },
+                  "message": "Share link created successfully"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - not the conversation owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Conversation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Cancel share link for conversation",
+        "deprecated": false,
+        "description": "Cancels the shareable link for the conversation by setting the share field to false. Requires authentication and conversation ownership.",
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The conversation ID (UUID)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Share link cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": null,
+                  "message": "Share link cancelled successfully"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - not the conversation owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Conversation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get conversation with share status",
+        "deprecated": false,
+        "description": "Retrieves a conversation with its messages. When share=1 query parameter is provided, checks if the conversation is shared and validates access permissions. Does not require authentication for shared links.",
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The conversation ID (UUID)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "share",
+            "in": "query",
+            "description": "Set to '1' to access as shared link (no authentication required)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["1"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conversation retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "title": "Chat with NuoBuddy",
+                    "difyConversationId": "dify-abc123",
+                    "createdAt": "2026-03-22T10:00:00.000Z",
+                    "updatedAt": "2026-03-22T10:30:00.000Z",
+                    "messages": [
+                      {
+                        "id": "msg-1",
+                        "role": "user",
+                        "content": "Hello!",
+                        "timestamp": "2026-03-22T10:00:00.000Z"
+                      },
+                      {
+                        "id": "msg-2",
+                        "role": "assistant",
+                        "content": "Hi there!",
+                        "timestamp": "2026-03-22T10:00:05.000Z"
+                      }
+                    ],
+                    "share": true,
+                    "accessible": true
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized (required for non-shared access)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - conversation not shared or access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": 403,
+                  "data": {
+                    "share": false,
+                    "accessible": false
+                  },
+                  "message": "This conversation is not shared or you don't have access"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Conversation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/admin/user": {
       "get": {
         "summary": "Get paginated user list",

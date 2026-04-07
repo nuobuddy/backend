@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import express, {
   Express, NextFunction, Request, Response,
 } from 'express';
+import cors from 'cors';
 import { sendNotFound, sendServerError } from '@/lib/response';
 import router from '@/routes';
 import { AppDataSource } from '@/config/database';
@@ -12,6 +13,14 @@ import settingsRoutes from './routes/settings';
 
 const app: Express = express();
 const PORT = env.node.port;
+
+// CORS — allow requests from the frontend origin
+app.use(
+  cors({
+    origin: env.node.corsOrigin,
+    credentials: true,
+  }),
+);
 
 // Body parsers
 app.use(express.json());
@@ -29,10 +38,12 @@ app.use((_req: Request, res: Response): void => {
 });
 
 // Global error handler — must be placed last with 4 parameters
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction): void => {
-  console.error(err.stack);
-  sendServerError(res, err.message);
-});
+app.use(
+  (err: Error, _req: Request, res: Response, _next: NextFunction): void => {
+    console.error(err.stack);
+    sendServerError(res, err.message);
+  },
+);
 
 AppDataSource.initialize()
   .then(() => {
