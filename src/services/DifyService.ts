@@ -18,6 +18,8 @@ type DifyTransformStream = Transform & {
 type DifyTransformState = {
   difyConversationId: string;
   fullAnswer: string;
+  taskId: string;
+  taskIdForwarded: boolean;
 };
 
 type DifyTransformResult = {
@@ -30,6 +32,8 @@ function createDifyTransform(): DifyTransformResult {
   const state: DifyTransformState = {
     difyConversationId: '',
     fullAnswer: '',
+    taskId: '',
+    taskIdForwarded: false,
   };
 
   function processBlock(block: string): string | null {
@@ -48,23 +52,43 @@ function createDifyTransform(): DifyTransformResult {
       return null;
     }
 
+    const parsedWithTask = parsed as DifyStreamEvent & { task_id?: unknown };
+    if (typeof parsedWithTask.task_id === 'string' && parsedWithTask.task_id.trim()) {
+      state.taskId = parsedWithTask.task_id.trim();
+    }
+
+    const outgoingEvents: string[] = [];
+
+    if (state.taskId && !state.taskIdForwarded) {
+      state.taskIdForwarded = true;
+      outgoingEvents.push(`event: task\ndata: ${JSON.stringify({ taskId: state.taskId })}\n\n`);
+    }
+
     if (parsed.event === 'message') {
       const content = parsed.answer ?? '';
       if (parsed.conversation_id) state.difyConversationId = parsed.conversation_id;
       state.fullAnswer += content;
-      return `event: delta\ndata: ${JSON.stringify({ content })}\n\n`;
+
+      const payload: { content: string; taskId?: string } = { content };
+      if (state.taskId) {
+        payload.taskId = state.taskId;
+      }
+
+      outgoingEvents.push(`event: delta\ndata: ${JSON.stringify(payload)}\n\n`);
+      return outgoingEvents.join('');
     }
 
     if (parsed.event === 'message_end') {
       if (parsed.conversation_id) state.difyConversationId = parsed.conversation_id;
-      return null;
+      return outgoingEvents.length > 0 ? outgoingEvents.join('') : null;
     }
 
     if (parsed.event === 'error') {
-      return `event: error\ndata: ${JSON.stringify({ message: parsed.message ?? 'Unknown Dify error' })}\n\n`;
+      outgoingEvents.push(`event: error\ndata: ${JSON.stringify({ message: parsed.message ?? 'Unknown Dify error' })}\n\n`);
+      return outgoingEvents.join('');
     }
 
-    return null;
+    return outgoingEvents.length > 0 ? outgoingEvents.join('') : null;
   }
 
   const transform = new Transform({
@@ -94,6 +118,65 @@ function createDifyTransform(): DifyTransformResult {
 }
 
 export class DifyService {
+  private static buildMultipartPayload(params: {
+    file: {
+      buffer: Buffer;
+      mimetype: string;
+      originalname: string;
+    };
+    userId: string;
+  }): { body: Buffer; contentType: string } {
+    const boundary = `----NuobuddyBoundary${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
+    const safeFilename = params.file.originalname.replace(/"/g, '%22');
+    const mimeType = params.file.mimetype || 'application/octet-stream';
+
+    const filePartHeader = Buffer.from(
+      `--${boundary}\r\n`
+      + `Content-Disposition: form-data; name="file"; filename="${safeFilename}"\r\n`
+      + `Content-Type: ${mimeType}\r\n\r\n`,
+      'utf8',
+    );
+
+    const userPart = Buffer.from(
+      `\r\n--${boundary}\r\n`
+      + 'Content-Disposition: form-data; name="user"\r\n\r\n'
+      + `${params.userId}\r\n`
+      + `--${boundary}--\r\n`,
+      'utf8',
+    );
+
+    return {
+      body: Buffer.concat([filePartHeader, params.file.buffer, userPart]),
+      contentType: `multipart/form-data; boundary=${boundary}`,
+    };
+  }
+
+  private static async postMultipartAndGetRawBody(params: {
+    baseUrl: string;
+    apiKey: string;
+    path: string;
+    body: Buffer;
+    contentType: string;
+  }): Promise<string> {
+    const response = await fetch(`${params.baseUrl}${params.path}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${params.apiKey}`,
+        'Content-Type': params.contentType,
+        'Content-Length': String(params.body.length),
+      },
+      body: params.body,
+    });
+
+    const rawBody = await response.text();
+
+    if (!response.ok) {
+      throw new Error(this.parseDifyError(rawBody, response.status));
+    }
+
+    return rawBody;
+  }
+
   private static async getDifyConfig(): Promise<{ baseUrl: string; apiKey: string }> {
     const rawBaseUrl = await SettingService.get('dify.base_url', 'https://api.dify.ai');
     const baseUrl = (rawBaseUrl ?? '').replace(/\/v1\/?$/, '').replace(/\/$/, '');
@@ -133,6 +216,38 @@ export class DifyService {
     return `Dify API error: ${statusCode}`;
   }
 
+  static async audioToText(params: {
+    file: {
+      buffer: Buffer;
+      mimetype: string;
+      originalname: string;
+    };
+    userId: string;
+  }): Promise<{ text: string }> {
+    const { baseUrl, apiKey } = await this.getDifyConfig();
+    const multipartPayload = this.buildMultipartPayload(params);
+    const rawBody = await this.postMultipartAndGetRawBody({
+      baseUrl,
+      apiKey,
+      path: '/v1/audio-to-text',
+      body: multipartPayload.body,
+      contentType: multipartPayload.contentType,
+    });
+
+    let parsed: { text?: string };
+    try {
+      parsed = JSON.parse(rawBody) as { text?: string };
+    } catch {
+      throw new Error('Invalid Dify audio-to-text response');
+    }
+
+    if (typeof parsed.text !== 'string') {
+      throw new Error('Dify audio-to-text response missing text field');
+    }
+
+    return { text: parsed.text };
+  }
+
   static async uploadFile(params: {
     file: {
       buffer: Buffer;
@@ -142,28 +257,14 @@ export class DifyService {
     userId: string;
   }): Promise<DifyFileUploadResponse> {
     const { baseUrl, apiKey } = await this.getDifyConfig();
-
-    const formData = new FormData();
-    const fileBlob = new Blob([params.file.buffer], {
-      type: params.file.mimetype || 'application/octet-stream',
+    const multipartPayload = this.buildMultipartPayload(params);
+    const rawBody = await this.postMultipartAndGetRawBody({
+      baseUrl,
+      apiKey,
+      path: '/v1/files/upload',
+      body: multipartPayload.body,
+      contentType: multipartPayload.contentType,
     });
-
-    formData.append('file', fileBlob, params.file.originalname);
-    formData.append('user', params.userId);
-
-    const response = await fetch(`${baseUrl}/v1/files/upload`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-    });
-
-    const rawBody = await response.text();
-
-    if (!response.ok) {
-      throw new Error(this.parseDifyError(rawBody, response.status));
-    }
 
     let parsed: DifyFileUploadResponse;
     try {
@@ -207,6 +308,42 @@ export class DifyService {
       data: Buffer.from(arrayBuffer),
       contentType,
     };
+  }
+
+  static async stopChatMessageGeneration(params: {
+    taskId: string;
+    userId: string;
+  }): Promise<{ result: string }> {
+    const { baseUrl, apiKey } = await this.getDifyConfig();
+    const safeTaskId = encodeURIComponent(params.taskId);
+
+    const response = await fetch(`${baseUrl}/v1/chat-messages/${safeTaskId}/stop`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user: params.userId }),
+    });
+
+    const rawBody = await response.text();
+
+    if (!response.ok) {
+      throw new Error(this.parseDifyError(rawBody, response.status));
+    }
+
+    let parsed: { result?: string };
+    try {
+      parsed = JSON.parse(rawBody) as { result?: string };
+    } catch {
+      throw new Error('Invalid Dify stop response');
+    }
+
+    if (typeof parsed.result !== 'string' || !parsed.result) {
+      throw new Error('Dify stop response missing result');
+    }
+
+    return { result: parsed.result };
   }
 
   /**
