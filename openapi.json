@@ -815,6 +815,117 @@
         ]
       }
     },
+    "/chat/audio-to-text": {
+      "post": {
+        "summary": "Convert audio to text",
+        "deprecated": false,
+        "description": "Converts an uploaded audio file to text using the Dify audio-to-text API. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm. File size limit is 30 MB. Requires authentication.",
+        "tags": [
+          "Chat"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Audio file to transcribe. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm. Limit: 30 MB."
+                  }
+                }
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Audio converted to text successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "text": "Hello, I would like to know more about the course registration process."
+                  },
+                  "message": "Audio converted to text successfully"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad request — missing file, provider not configured, or Dify speech-to-text not supported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "413": {
+            "description": "Audio file size exceeded the 30 MB limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "415": {
+            "description": "Unsupported audio format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/chat/files/{fileId}/preview": {
       "get": {
         "summary": "Preview an uploaded chat file",

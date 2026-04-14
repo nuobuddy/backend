@@ -94,6 +94,65 @@ function createDifyTransform(): DifyTransformResult {
 }
 
 export class DifyService {
+  private static buildMultipartPayload(params: {
+    file: {
+      buffer: Buffer;
+      mimetype: string;
+      originalname: string;
+    };
+    userId: string;
+  }): { body: Buffer; contentType: string } {
+    const boundary = `----NuobuddyBoundary${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
+    const safeFilename = params.file.originalname.replace(/"/g, '%22');
+    const mimeType = params.file.mimetype || 'application/octet-stream';
+
+    const filePartHeader = Buffer.from(
+      `--${boundary}\r\n`
+      + `Content-Disposition: form-data; name="file"; filename="${safeFilename}"\r\n`
+      + `Content-Type: ${mimeType}\r\n\r\n`,
+      'utf8',
+    );
+
+    const userPart = Buffer.from(
+      `\r\n--${boundary}\r\n`
+      + 'Content-Disposition: form-data; name="user"\r\n\r\n'
+      + `${params.userId}\r\n`
+      + `--${boundary}--\r\n`,
+      'utf8',
+    );
+
+    return {
+      body: Buffer.concat([filePartHeader, params.file.buffer, userPart]),
+      contentType: `multipart/form-data; boundary=${boundary}`,
+    };
+  }
+
+  private static async postMultipartAndGetRawBody(params: {
+    baseUrl: string;
+    apiKey: string;
+    path: string;
+    body: Buffer;
+    contentType: string;
+  }): Promise<string> {
+    const response = await fetch(`${params.baseUrl}${params.path}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${params.apiKey}`,
+        'Content-Type': params.contentType,
+        'Content-Length': String(params.body.length),
+      },
+      body: params.body,
+    });
+
+    const rawBody = await response.text();
+
+    if (!response.ok) {
+      throw new Error(this.parseDifyError(rawBody, response.status));
+    }
+
+    return rawBody;
+  }
+
   private static async getDifyConfig(): Promise<{ baseUrl: string; apiKey: string }> {
     const rawBaseUrl = await SettingService.get('dify.base_url', 'https://api.dify.ai');
     const baseUrl = (rawBaseUrl ?? '').replace(/\/v1\/?$/, '').replace(/\/$/, '');
@@ -133,6 +192,38 @@ export class DifyService {
     return `Dify API error: ${statusCode}`;
   }
 
+  static async audioToText(params: {
+    file: {
+      buffer: Buffer;
+      mimetype: string;
+      originalname: string;
+    };
+    userId: string;
+  }): Promise<{ text: string }> {
+    const { baseUrl, apiKey } = await this.getDifyConfig();
+    const multipartPayload = this.buildMultipartPayload(params);
+    const rawBody = await this.postMultipartAndGetRawBody({
+      baseUrl,
+      apiKey,
+      path: '/v1/audio-to-text',
+      body: multipartPayload.body,
+      contentType: multipartPayload.contentType,
+    });
+
+    let parsed: { text?: string };
+    try {
+      parsed = JSON.parse(rawBody) as { text?: string };
+    } catch {
+      throw new Error('Invalid Dify audio-to-text response');
+    }
+
+    if (typeof parsed.text !== 'string') {
+      throw new Error('Dify audio-to-text response missing text field');
+    }
+
+    return { text: parsed.text };
+  }
+
   static async uploadFile(params: {
     file: {
       buffer: Buffer;
@@ -142,28 +233,14 @@ export class DifyService {
     userId: string;
   }): Promise<DifyFileUploadResponse> {
     const { baseUrl, apiKey } = await this.getDifyConfig();
-
-    const formData = new FormData();
-    const fileBlob = new Blob([params.file.buffer], {
-      type: params.file.mimetype || 'application/octet-stream',
+    const multipartPayload = this.buildMultipartPayload(params);
+    const rawBody = await this.postMultipartAndGetRawBody({
+      baseUrl,
+      apiKey,
+      path: '/v1/files/upload',
+      body: multipartPayload.body,
+      contentType: multipartPayload.contentType,
     });
-
-    formData.append('file', fileBlob, params.file.originalname);
-    formData.append('user', params.userId);
-
-    const response = await fetch(`${baseUrl}/v1/files/upload`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-    });
-
-    const rawBody = await response.text();
-
-    if (!response.ok) {
-      throw new Error(this.parseDifyError(rawBody, response.status));
-    }
 
     let parsed: DifyFileUploadResponse;
     try {
