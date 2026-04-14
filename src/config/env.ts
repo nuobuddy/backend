@@ -26,7 +26,7 @@ export const env = {
     expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   },
   smtpgo: {
-    host: process.env.SMTP_HOST ?? '',
-    apiKey: process.env.SMTPGO_API_KEY ?? '',
+    host: process.env.SMTOGO_API_URL ?? process.env.SMTP_HOST ?? '',
+    apiKey: process.env.SMTOGO_API_KEY ?? process.env.SMTPGO_API_KEY ?? '',
   },
 } as const;

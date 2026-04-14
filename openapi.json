@@ -23,6 +23,9 @@
     },
     {
       "name": "Common"
+    },
+    {
+      "name": "Analytics"
     }
   ],
   "paths": {
@@ -1557,6 +1560,270 @@
         ]
       }
     },
+    "/admin/analytics/users/weekly-new": {
+      "get": {
+        "summary": "Get weekly new users over past 6 months",
+        "deprecated": false,
+        "description": "Returns weekly new user registrations for the past 6 months. Weeks are calculated in UTC and include zero-value weeks for charting.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Weekly new users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsWeeklyNewUsersResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "period": {
+                      "from": "2025-10-14",
+                      "to": "2026-04-14",
+                      "unit": "week",
+                      "range": "past-6-months"
+                    },
+                    "points": [
+                      {
+                        "weekStart": "2025-10-13",
+                        "weekEnd": "2025-10-19",
+                        "newUsers": 4
+                      },
+                      {
+                        "weekStart": "2025-10-20",
+                        "weekEnd": "2025-10-26",
+                        "newUsers": 0
+                      }
+                    ]
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/analytics/conversations/daily-count": {
+      "get": {
+        "summary": "Get daily conversation count over past 7 days",
+        "deprecated": false,
+        "description": "Returns daily new conversation counts for the past 7 days in UTC, including zero-value days.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Daily conversation counts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsDailyConversationCountResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "period": {
+                      "from": "2026-04-08",
+                      "to": "2026-04-14",
+                      "unit": "day",
+                      "range": "past-7-days"
+                    },
+                    "points": [
+                      {
+                        "date": "2026-04-08",
+                        "conversationCount": 3
+                      },
+                      {
+                        "date": "2026-04-09",
+                        "conversationCount": 0
+                      }
+                    ]
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/analytics/users/total": {
+      "get": {
+        "summary": "Get total user count",
+        "deprecated": false,
+        "description": "Returns total number of users as a standalone analytics metric.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Total user count retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTotalUsersResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "totalUsers": 128
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/analytics/conversations/total": {
+      "get": {
+        "summary": "Get total conversation count",
+        "deprecated": false,
+        "description": "Returns total number of conversations as a standalone analytics metric.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Total conversation count retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTotalConversationsResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "totalConversations": 356
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/common": {
       "get": {
         "summary": "Common API info",
@@ -1936,6 +2203,157 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AnalyticsPeriod": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week"
+            ]
+          },
+          "range": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsWeeklyNewUsersPoint": {
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "weekEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "newUsers": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsWeeklyNewUsersData": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/AnalyticsPeriod"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsWeeklyNewUsersPoint"
+            }
+          }
+        }
+      },
+      "AnalyticsWeeklyNewUsersResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsWeeklyNewUsersData"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsDailyConversationCountPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "conversationCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsDailyConversationCountData": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/AnalyticsPeriod"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsDailyConversationCountPoint"
+            }
+          }
+        }
+      },
+      "AnalyticsDailyConversationCountResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsDailyConversationCountData"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsTotalUsersData": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsTotalUsersResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsTotalUsersData"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsTotalConversationsData": {
+        "type": "object",
+        "properties": {
+          "totalConversations": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsTotalConversationsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsTotalConversationsData"
+          },
+          "message": {
+            "type": "string"
           }
         }
       }

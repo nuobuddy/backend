@@ -6,6 +6,7 @@ import { authMiddleware } from '@/middleware/auth';
 import { adminMiddleware } from '@/middleware/admin';
 import { sendSuccess, sendBadRequest, sendNotFound } from '@/lib/response';
 import { UserService } from '@/services/UserService';
+import { ConversationService } from '@/services/ConversationService';
 import SettingService from '@/services/SettingService';
 
 const router: IRouter = Router();
@@ -177,6 +178,78 @@ router.post(
       null,
       `User ${isActive ? 'enabled' : 'disabled'} successfully`,
     );
+  }),
+);
+
+// ====================================================================
+// GET /admin/analytics/users/weekly-new  — Weekly new users (past 6 months)
+// ====================================================================
+router.get(
+  '/analytics/users/weekly-new',
+  adminGuard,
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    const result = await UserService.getWeeklyNewUsersForPastMonths(6);
+
+    sendSuccess(res, {
+      period: {
+        from: result.from,
+        to: result.to,
+        unit: 'week',
+        range: 'past-6-months',
+      },
+      points: result.points,
+    });
+  }),
+);
+
+// ====================================================================
+// GET /admin/analytics/conversations/daily-count  — Daily conversations (past 7 days)
+// ====================================================================
+router.get(
+  '/analytics/conversations/daily-count',
+  adminGuard,
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    const result = await ConversationService.getDailyConversationCountForPastDays(7);
+
+    sendSuccess(res, {
+      period: {
+        from: result.from,
+        to: result.to,
+        unit: 'day',
+        range: 'past-7-days',
+      },
+      points: result.points,
+    });
+  }),
+);
+
+// ====================================================================
+// GET /admin/analytics/users/total  — Total users
+// ====================================================================
+router.get(
+  '/analytics/users/total',
+  adminGuard,
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    const totalUsers = await UserService.count();
+
+    sendSuccess(res, {
+      totalUsers,
+    });
+  }),
+);
+
+// ====================================================================
+// GET /admin/analytics/conversations/total  — Total conversations
+// ====================================================================
+router.get(
+  '/analytics/conversations/total',
+  adminGuard,
+  asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    const totalConversations = await ConversationService.count();
+
+    sendSuccess(res, {
+      totalConversations,
+    });
   }),
 );
 
