@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     role VARCHAR(50) NOT NULL,
     content TEXT NOT NULL,
+    attachments JSONB,
     "conversationId" UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -46,6 +47,9 @@ CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations("userId");
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages("conversationId");
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- Backfill schema for existing databases
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS attachments JSONB;
 
 -- Insert default system settings
 INSERT INTO system_settings (key, value, description) VALUES

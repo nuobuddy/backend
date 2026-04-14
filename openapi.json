@@ -710,6 +710,190 @@
         ]
       }
     },
+    "/chat/files/upload": {
+      "post": {
+        "summary": "Upload a file for chat message",
+        "deprecated": false,
+        "description": "Uploads one file to Dify for later use in chat message files payload. Requires authentication.",
+        "tags": [
+          "Chat"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Single file to upload"
+                  }
+                }
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "id": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
+                    "name": "document.pdf",
+                    "size": 128000,
+                    "extension": "pdf",
+                    "mimeType": "application/pdf",
+                    "fileType": "document"
+                  },
+                  "message": "File uploaded successfully"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad request - invalid upload payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "413": {
+            "description": "File too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "415": {
+            "description": "Unsupported file type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/chat/files/{fileId}/preview": {
+      "get": {
+        "summary": "Preview an uploaded chat file",
+        "deprecated": false,
+        "description": "Returns binary preview content for a previously uploaded file. Requires authentication and the same user context used during upload.",
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "description": "Uploaded file ID returned by /chat/files/upload",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview content",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/chat/conversations/{id}/share": {
       "post": {
         "summary": "Create share link for conversation",
@@ -2013,6 +2197,94 @@
           "query": {
             "type": "string",
             "description": "The user's message to the AI agent"
+          },
+          "files": {
+            "type": "array",
+            "maxItems": 1,
+            "description": "Optional local file attachments uploaded via /chat/files/upload",
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageFileRequest"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "maxItems": 1,
+            "description": "Optional persisted metadata for uploaded files. Must match files by upload_file_id.",
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageAttachmentRequest"
+            }
+          }
+        }
+      },
+      "ChatMessageFileRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "transfer_method",
+          "upload_file_id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "document",
+              "audio",
+              "video",
+              "custom"
+            ],
+            "description": "File type"
+          },
+          "transfer_method": {
+            "type": "string",
+            "enum": [
+              "local_file"
+            ],
+            "description": "Only local_file is supported by this backend"
+          },
+          "upload_file_id": {
+            "type": "string",
+            "description": "File ID returned by /chat/files/upload"
+          }
+        }
+      },
+      "ChatMessageAttachmentRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "size",
+          "fileType"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Uploaded file ID returned by /chat/files/upload"
+          },
+          "name": {
+            "type": "string",
+            "description": "Original file name"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "File size in bytes"
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true,
+            "description": "File MIME type when available"
+          },
+          "fileType": {
+            "type": "string",
+            "enum": [
+              "image",
+              "document",
+              "audio",
+              "video",
+              "custom"
+            ],
+            "description": "Normalized file type used by chat UI"
           }
         }
       },

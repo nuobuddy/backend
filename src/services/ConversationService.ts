@@ -1,6 +1,6 @@
 import { AppDataSource } from '@/config/database';
 import { Conversation } from '@/entities/Conversation';
-import { Message } from '@/entities/Message';
+import { Message, MessageAttachment } from '@/entities/Message';
 
 export interface DailyConversationCountPoint {
   date: string;
@@ -98,8 +98,14 @@ export class ConversationService {
     conversationId: string,
     role: 'user' | 'assistant',
     content: string,
+    attachments?: MessageAttachment[],
   ): Promise<Message> {
-    const message = this.msgRepo().create({ conversationId, role, content });
+    const message = this.msgRepo().create({
+      conversationId,
+      role,
+      content,
+      attachments: attachments && attachments.length > 0 ? attachments : null,
+    });
     return this.msgRepo().save(message);
   }
 

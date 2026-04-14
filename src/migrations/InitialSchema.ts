@@ -4,13 +4,13 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Initial database schema migration.
  * Creates users, conversations, and system_settings tables.
  */
-export class InitialSchema implements MigrationInterface {
-  name = 'InitialSchema';
+export class InitialSchema2026041200000 implements MigrationInterface {
+  name = 'InitialSchema2026041200000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create users table
     await queryRunner.query(`
-      CREATE TABLE "users" (
+      CREATE TABLE IF NOT EXISTS "users" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         "username" varchar NOT NULL UNIQUE,
         "email" varchar NOT NULL UNIQUE,
@@ -24,10 +24,11 @@ export class InitialSchema implements MigrationInterface {
 
     // Create conversations table
     await queryRunner.query(`
-      CREATE TABLE "conversations" (
+      CREATE TABLE IF NOT EXISTS "conversations" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         "difyConversationId" varchar,
         "title" varchar,
+        "share" boolean NOT NULL DEFAULT false,
         "userId" uuid NOT NULL,
         "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
         "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
@@ -36,9 +37,29 @@ export class InitialSchema implements MigrationInterface {
       )
     `);
 
+    // Backfill share column for older schemas
+    await queryRunner.query(`
+      ALTER TABLE "conversations"
+      ADD COLUMN IF NOT EXISTS "share" boolean NOT NULL DEFAULT false
+    `);
+
+    // Create messages table
+    await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS "messages" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        "role" varchar NOT NULL,
+        "content" text NOT NULL,
+        "attachments" jsonb,
+        "conversationId" uuid NOT NULL,
+        "timestamp" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "FK_messages_conversationId" FOREIGN KEY ("conversationId")
+          REFERENCES "conversations"("id") ON DELETE CASCADE
+      )
+    `);
+
     // Create system_settings table
     await queryRunner.query(`
-      CREATE TABLE "system_settings" (
+      CREATE TABLE IF NOT EXISTS "system_settings" (
         "key" varchar PRIMARY KEY,
         "value" text NOT NULL,
         "description" varchar,
@@ -48,27 +69,33 @@ export class InitialSchema implements MigrationInterface {
 
     // Create indexes
     await queryRunner.query(`
-      CREATE INDEX "IDX_conversations_userId" ON "conversations" ("userId")
+      CREATE INDEX IF NOT EXISTS "IDX_conversations_userId" ON "conversations" ("userId")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_users_username" ON "users" ("username")
+      CREATE INDEX IF NOT EXISTS "IDX_messages_conversationId" ON "messages" ("conversationId")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_users_email" ON "users" ("email")
+      CREATE INDEX IF NOT EXISTS "IDX_users_username" ON "users" ("username")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX IF NOT EXISTS "IDX_users_email" ON "users" ("email")
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
-    await queryRunner.query('DROP INDEX "IDX_users_email"');
-    await queryRunner.query('DROP INDEX "IDX_users_username"');
-    await queryRunner.query('DROP INDEX "IDX_conversations_userId"');
+    await queryRunner.query('DROP INDEX IF EXISTS "IDX_users_email"');
+    await queryRunner.query('DROP INDEX IF EXISTS "IDX_users_username"');
+    await queryRunner.query('DROP INDEX IF EXISTS "IDX_messages_conversationId"');
+    await queryRunner.query('DROP INDEX IF EXISTS "IDX_conversations_userId"');
 
     // Drop tables
-    await queryRunner.query('DROP TABLE "system_settings"');
-    await queryRunner.query('DROP TABLE "conversations"');
-    await queryRunner.query('DROP TABLE "users"');
+    await queryRunner.query('DROP TABLE IF EXISTS "messages"');
+    await queryRunner.query('DROP TABLE IF EXISTS "system_settings"');
+    await queryRunner.query('DROP TABLE IF EXISTS "conversations"');
+    await queryRunner.query('DROP TABLE IF EXISTS "users"');
   }
 }

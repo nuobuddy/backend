@@ -3,6 +3,7 @@ services:
     build: .
     container_name: nuobuddy-backend
     restart: unless-stopped
+    command: sh -c "pnpm migration:run && pnpm start"
     ports:
       - "3000:3000"
     env_file:
