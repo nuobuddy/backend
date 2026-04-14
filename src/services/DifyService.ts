@@ -18,6 +18,8 @@ type DifyTransformStream = Transform & {
 type DifyTransformState = {
   difyConversationId: string;
   fullAnswer: string;
+  taskId: string;
+  taskIdForwarded: boolean;
 };
 
 type DifyTransformResult = {
@@ -30,6 +32,8 @@ function createDifyTransform(): DifyTransformResult {
   const state: DifyTransformState = {
     difyConversationId: '',
     fullAnswer: '',
+    taskId: '',
+    taskIdForwarded: false,
   };
 
   function processBlock(block: string): string | null {
@@ -48,23 +52,43 @@ function createDifyTransform(): DifyTransformResult {
       return null;
     }
 
+    const parsedWithTask = parsed as DifyStreamEvent & { task_id?: unknown };
+    if (typeof parsedWithTask.task_id === 'string' && parsedWithTask.task_id.trim()) {
+      state.taskId = parsedWithTask.task_id.trim();
+    }
+
+    const outgoingEvents: string[] = [];
+
+    if (state.taskId && !state.taskIdForwarded) {
+      state.taskIdForwarded = true;
+      outgoingEvents.push(`event: task\ndata: ${JSON.stringify({ taskId: state.taskId })}\n\n`);
+    }
+
     if (parsed.event === 'message') {
       const content = parsed.answer ?? '';
       if (parsed.conversation_id) state.difyConversationId = parsed.conversation_id;
       state.fullAnswer += content;
-      return `event: delta\ndata: ${JSON.stringify({ content })}\n\n`;
+
+      const payload: { content: string; taskId?: string } = { content };
+      if (state.taskId) {
+        payload.taskId = state.taskId;
+      }
+
+      outgoingEvents.push(`event: delta\ndata: ${JSON.stringify(payload)}\n\n`);
+      return outgoingEvents.join('');
     }
 
     if (parsed.event === 'message_end') {
       if (parsed.conversation_id) state.difyConversationId = parsed.conversation_id;
-      return null;
+      return outgoingEvents.length > 0 ? outgoingEvents.join('') : null;
     }
 
     if (parsed.event === 'error') {
-      return `event: error\ndata: ${JSON.stringify({ message: parsed.message ?? 'Unknown Dify error' })}\n\n`;
+      outgoingEvents.push(`event: error\ndata: ${JSON.stringify({ message: parsed.message ?? 'Unknown Dify error' })}\n\n`);
+      return outgoingEvents.join('');
     }
 
-    return null;
+    return outgoingEvents.length > 0 ? outgoingEvents.join('') : null;
   }
 
   const transform = new Transform({
@@ -284,6 +308,42 @@ export class DifyService {
       data: Buffer.from(arrayBuffer),
       contentType,
     };
+  }
+
+  static async stopChatMessageGeneration(params: {
+    taskId: string;
+    userId: string;
+  }): Promise<{ result: string }> {
+    const { baseUrl, apiKey } = await this.getDifyConfig();
+    const safeTaskId = encodeURIComponent(params.taskId);
+
+    const response = await fetch(`${baseUrl}/v1/chat-messages/${safeTaskId}/stop`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user: params.userId }),
+    });
+
+    const rawBody = await response.text();
+
+    if (!response.ok) {
+      throw new Error(this.parseDifyError(rawBody, response.status));
+    }
+
+    let parsed: { result?: string };
+    try {
+      parsed = JSON.parse(rawBody) as { result?: string };
+    } catch {
+      throw new Error('Invalid Dify stop response');
+    }
+
+    if (typeof parsed.result !== 'string' || !parsed.result) {
+      throw new Error('Dify stop response missing result');
+    }
+
+    return { result: parsed.result };
   }
 
   /**

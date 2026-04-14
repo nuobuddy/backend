@@ -197,6 +197,7 @@ router.get(
           'GET  /chat/files/:fileId/preview',
           'POST /chat/audio-to-text',
           'POST /chat/conversations/:id/message',
+          'POST /chat/messages/:taskId/stop',
           'GET  /chat/conversations/:id/share',
           'POST /chat/conversations/:id/share',
           'DELETE /chat/conversations/:id/share',
@@ -449,7 +450,7 @@ function inferAudioMimeTypeFromFilename(filename: string): string | null {
   return AUDIO_EXTENSION_TO_MIME_TYPE[extension] ?? null;
 }
 
-function resolveDifyAudioMimeType(file: Express.Multer.File): string | null {
+function resolveDifyAudioMimeType(file: { mimetype: string; originalname: string }): string | null {
   const normalizedMimeType = normalizeAudioMimeType(file.mimetype);
   if (VALID_AUDIO_MIME_TYPES.has(normalizedMimeType)) {
     return normalizedMimeType;
@@ -638,6 +639,36 @@ router.post(
       res.write(`event: error\ndata: ${JSON.stringify({ message })}\n\n`);
     } finally {
       res.end();
+    }
+  }),
+);
+
+// ====================================================================
+// POST /chat/messages/:taskId/stop — Stop ongoing Dify generation task
+// ====================================================================
+router.post(
+  '/messages/:taskId/stop',
+  authMiddleware,
+  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+    const { userId } = req.user!;
+    const rawTaskId = req.params.taskId;
+    const taskId = rawTaskId?.trim();
+
+    if (!taskId) {
+      sendBadRequest(res, 'Task ID is required');
+      return;
+    }
+
+    try {
+      const result = await DifyService.stopChatMessageGeneration({
+        taskId,
+        userId,
+      });
+
+      sendSuccess(res, result, 'Message generation stopped');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to stop message generation';
+      sendBadRequest(res, message);
     }
   }),
 );
