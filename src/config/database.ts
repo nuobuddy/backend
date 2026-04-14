@@ -3,7 +3,8 @@ import { User } from '@/entities/User';
 import { Conversation } from '@/entities/Conversation';
 import { Message } from '@/entities/Message';
 import { SystemSetting } from '@/entities/SystemSetting';
-import { InitialSchema } from '@/migrations/InitialSchema';
+import { InitialSchema2026041200000 } from '@/migrations/InitialSchema';
+import { AddMessageAttachments2026041400000 } from '@/migrations/AddMessageAttachments2026041400000';
 import { env } from './env';
 
 export const AppDataSource = new DataSource({
@@ -17,5 +18,5 @@ export const AppDataSource = new DataSource({
   synchronize: env.db.synchronize,
   logging: env.db.logging,
   entities: [User, Conversation, Message, SystemSetting],
-  migrations: [InitialSchema],
+  migrations: [InitialSchema2026041200000, AddMessageAttachments2026041400000],
 });

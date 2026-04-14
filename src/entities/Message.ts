@@ -7,6 +7,14 @@ import {
 } from 'typeorm';
 import { Conversation } from './Conversation';
 
+export interface MessageAttachment {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string | null;
+  fileType: 'image' | 'document' | 'audio' | 'video' | 'custom';
+}
+
 @Entity('messages')
 export class Message {
   @PrimaryGeneratedColumn('uuid')
@@ -17,6 +25,9 @@ export class Message {
 
   @Column({ type: 'text' })
     content!: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+    attachments!: MessageAttachment[] | null;
 
   @ManyToOne(() => Conversation, (c) => c.messages, { onDelete: 'CASCADE' })
     conversation!: Conversation;

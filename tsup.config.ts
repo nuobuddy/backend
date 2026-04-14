@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/main.ts'],
+  entry: ['src/main.ts', 'src/scripts/migration-run.ts'],
   format: ['cjs'],
   target: 'node18',
   splitting: false,

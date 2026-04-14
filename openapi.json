@@ -23,6 +23,9 @@
     },
     {
       "name": "Common"
+    },
+    {
+      "name": "Analytics"
     }
   ],
   "paths": {
@@ -690,6 +693,301 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/chat/files/upload": {
+      "post": {
+        "summary": "Upload a file for chat message",
+        "deprecated": false,
+        "description": "Uploads one file to Dify for later use in chat message files payload. Requires authentication.",
+        "tags": [
+          "Chat"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Single file to upload"
+                  }
+                }
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "id": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
+                    "name": "document.pdf",
+                    "size": 128000,
+                    "extension": "pdf",
+                    "mimeType": "application/pdf",
+                    "fileType": "document"
+                  },
+                  "message": "File uploaded successfully"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad request - invalid upload payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "413": {
+            "description": "File too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "415": {
+            "description": "Unsupported file type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/chat/audio-to-text": {
+      "post": {
+        "summary": "Convert audio to text",
+        "deprecated": false,
+        "description": "Converts an uploaded audio file to text using the Dify audio-to-text API. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm. File size limit is 30 MB. Requires authentication.",
+        "tags": [
+          "Chat"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Audio file to transcribe. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm. Limit: 30 MB."
+                  }
+                }
+              },
+              "examples": {}
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Audio converted to text successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "text": "Hello, I would like to know more about the course registration process."
+                  },
+                  "message": "Audio converted to text successfully"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad request — missing file, provider not configured, or Dify speech-to-text not supported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "413": {
+            "description": "Audio file size exceeded the 30 MB limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "415": {
+            "description": "Unsupported audio format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/chat/files/{fileId}/preview": {
+      "get": {
+        "summary": "Preview an uploaded chat file",
+        "deprecated": false,
+        "description": "Returns binary preview content for a previously uploaded file. Requires authentication and the same user context used during upload.",
+        "tags": [
+          "Chat"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "description": "Uploaded file ID returned by /chat/files/upload",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preview content",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "File not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1557,6 +1855,270 @@
         ]
       }
     },
+    "/admin/analytics/users/weekly-new": {
+      "get": {
+        "summary": "Get weekly new users over past 6 months",
+        "deprecated": false,
+        "description": "Returns weekly new user registrations for the past 6 months. Weeks are calculated in UTC and include zero-value weeks for charting.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Weekly new users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsWeeklyNewUsersResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "period": {
+                      "from": "2025-10-14",
+                      "to": "2026-04-14",
+                      "unit": "week",
+                      "range": "past-6-months"
+                    },
+                    "points": [
+                      {
+                        "weekStart": "2025-10-13",
+                        "weekEnd": "2025-10-19",
+                        "newUsers": 4
+                      },
+                      {
+                        "weekStart": "2025-10-20",
+                        "weekEnd": "2025-10-26",
+                        "newUsers": 0
+                      }
+                    ]
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/analytics/conversations/daily-count": {
+      "get": {
+        "summary": "Get daily conversation count over past 7 days",
+        "deprecated": false,
+        "description": "Returns daily new conversation counts for the past 7 days in UTC, including zero-value days.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Daily conversation counts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsDailyConversationCountResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "period": {
+                      "from": "2026-04-08",
+                      "to": "2026-04-14",
+                      "unit": "day",
+                      "range": "past-7-days"
+                    },
+                    "points": [
+                      {
+                        "date": "2026-04-08",
+                        "conversationCount": 3
+                      },
+                      {
+                        "date": "2026-04-09",
+                        "conversationCount": 0
+                      }
+                    ]
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/analytics/users/total": {
+      "get": {
+        "summary": "Get total user count",
+        "deprecated": false,
+        "description": "Returns total number of users as a standalone analytics metric.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Total user count retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTotalUsersResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "totalUsers": 128
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/admin/analytics/conversations/total": {
+      "get": {
+        "summary": "Get total conversation count",
+        "deprecated": false,
+        "description": "Returns total number of conversations as a standalone analytics metric.",
+        "tags": [
+          "Analytics"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Total conversation count retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsTotalConversationsResponse"
+                },
+                "example": {
+                  "status": 200,
+                  "data": {
+                    "totalConversations": 356
+                  },
+                  "message": "Success"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/common": {
       "get": {
         "summary": "Common API info",
@@ -1746,6 +2308,94 @@
           "query": {
             "type": "string",
             "description": "The user's message to the AI agent"
+          },
+          "files": {
+            "type": "array",
+            "maxItems": 1,
+            "description": "Optional local file attachments uploaded via /chat/files/upload",
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageFileRequest"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "maxItems": 1,
+            "description": "Optional persisted metadata for uploaded files. Must match files by upload_file_id.",
+            "items": {
+              "$ref": "#/components/schemas/ChatMessageAttachmentRequest"
+            }
+          }
+        }
+      },
+      "ChatMessageFileRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "transfer_method",
+          "upload_file_id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "document",
+              "audio",
+              "video",
+              "custom"
+            ],
+            "description": "File type"
+          },
+          "transfer_method": {
+            "type": "string",
+            "enum": [
+              "local_file"
+            ],
+            "description": "Only local_file is supported by this backend"
+          },
+          "upload_file_id": {
+            "type": "string",
+            "description": "File ID returned by /chat/files/upload"
+          }
+        }
+      },
+      "ChatMessageAttachmentRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "size",
+          "fileType"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Uploaded file ID returned by /chat/files/upload"
+          },
+          "name": {
+            "type": "string",
+            "description": "Original file name"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "File size in bytes"
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true,
+            "description": "File MIME type when available"
+          },
+          "fileType": {
+            "type": "string",
+            "enum": [
+              "image",
+              "document",
+              "audio",
+              "video",
+              "custom"
+            ],
+            "description": "Normalized file type used by chat UI"
           }
         }
       },
@@ -1936,6 +2586,157 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "AnalyticsPeriod": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "day",
+              "week"
+            ]
+          },
+          "range": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsWeeklyNewUsersPoint": {
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "weekEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "newUsers": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsWeeklyNewUsersData": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/AnalyticsPeriod"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsWeeklyNewUsersPoint"
+            }
+          }
+        }
+      },
+      "AnalyticsWeeklyNewUsersResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsWeeklyNewUsersData"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsDailyConversationCountPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "conversationCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsDailyConversationCountData": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/AnalyticsPeriod"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsDailyConversationCountPoint"
+            }
+          }
+        }
+      },
+      "AnalyticsDailyConversationCountResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsDailyConversationCountData"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsTotalUsersData": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsTotalUsersResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsTotalUsersData"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsTotalConversationsData": {
+        "type": "object",
+        "properties": {
+          "totalConversations": {
+            "type": "integer"
+          }
+        }
+      },
+      "AnalyticsTotalConversationsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnalyticsTotalConversationsData"
+          },
+          "message": {
+            "type": "string"
           }
         }
       }

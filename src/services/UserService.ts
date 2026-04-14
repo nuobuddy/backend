@@ -22,8 +22,39 @@ export interface CreateUserDto {
   role?: 'user' | 'admin';
 }
 
+export interface WeeklyNewUsersPoint {
+  weekStart: string;
+  weekEnd: string;
+  newUsers: number;
+}
+
+export interface WeeklyNewUsersResult {
+  from: string;
+  to: string;
+  points: WeeklyNewUsersPoint[];
+}
+
 export class UserService {
   private static userRepository = () => AppDataSource.getRepository(User);
+
+  private static readonly DAY_MS = 24 * 60 * 60 * 1000;
+
+  private static formatUtcDate(date: Date): string {
+    return date.toISOString().slice(0, 10);
+  }
+
+  private static startOfUtcWeek(date: Date): Date {
+    const normalized = new Date(Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+    ));
+
+    const day = normalized.getUTCDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    normalized.setUTCDate(normalized.getUTCDate() + diff);
+    return normalized;
+  }
 
   /**
    * Register a new user.
@@ -217,5 +248,61 @@ export class UserService {
    */
   static async count(): Promise<number> {
     return this.userRepository().count();
+  }
+
+  /**
+   * Admin: Weekly new users over a fixed number of months.
+   */
+  static async getWeeklyNewUsersForPastMonths(
+    months: number = 6,
+  ): Promise<WeeklyNewUsersResult> {
+    const now = new Date();
+    const fromDate = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() - months,
+      now.getUTCDate(),
+    ));
+
+    const firstWeekStart = this.startOfUtcWeek(fromDate);
+    const currentWeekStart = this.startOfUtcWeek(now);
+
+    const rows = await this.userRepository()
+      .createQueryBuilder('user')
+      .select(
+        'DATE_TRUNC(\'week\', user.createdAt AT TIME ZONE \'UTC\')::date',
+        'week_start',
+      )
+      .addSelect('COUNT(*)', 'new_users')
+      .where('user.createdAt >= :fromDate', { fromDate: fromDate.toISOString() })
+      .andWhere('user.createdAt <= :toDate', { toDate: now.toISOString() })
+      .groupBy('week_start')
+      .orderBy('week_start', 'ASC')
+      .getRawMany<{ week_start: string; new_users: string }>();
+
+    const countByWeek = new Map<string, number>(
+      rows.map((row) => [row.week_start, parseInt(row.new_users, 10) || 0]),
+    );
+
+    const points: WeeklyNewUsersPoint[] = [];
+    let cursor = new Date(firstWeekStart);
+
+    while (cursor <= currentWeekStart) {
+      const weekStart = this.formatUtcDate(cursor);
+      const weekEndDate = new Date(cursor.getTime() + (6 * this.DAY_MS));
+
+      points.push({
+        weekStart,
+        weekEnd: this.formatUtcDate(weekEndDate),
+        newUsers: countByWeek.get(weekStart) ?? 0,
+      });
+
+      cursor = new Date(cursor.getTime() + (7 * this.DAY_MS));
+    }
+
+    return {
+      from: this.formatUtcDate(fromDate),
+      to: this.formatUtcDate(now),
+      points,
+    };
   }
 }
