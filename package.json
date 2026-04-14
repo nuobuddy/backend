@@ -7,7 +7,7 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsup",
     "start": "node dist/main.js",
-    "migration": "pnpm migration:run",
+    "migration": "pnpm run migration:run",
     "migration:run": "node dist/scripts/migration-run.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint src",

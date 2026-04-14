@@ -3,11 +3,21 @@ services:
     build: .
     container_name: nuobuddy-backend
     restart: unless-stopped
-    command: sh -c "pnpm migration:run && pnpm start"
+    command: >-
+      sh -c "if [ -f dist/scripts/migration-run.js ]; then node dist/scripts/migration-run.js;
+      elif [ -f dist/migration-run.js ]; then node dist/migration-run.js;
+      else echo 'Migration runner not found, skipping migrations.'; fi && node dist/main.js"
     ports:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: '${DB_PORT:-5432}'
+      DB_USERNAME: '${DB_USERNAME:-nuobuddy}'
+      DB_PASSWORD: '${DB_PASSWORD:-nuobuddy}'
+      DB_DATABASE: '${DB_DATABASE:-nuobuddy}'
+      REDIS_HOST: redis
     depends_on:
       postgres:
         condition: service_healthy

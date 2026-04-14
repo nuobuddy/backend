@@ -37,4 +37,4 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "pnpm migration:run && pnpm start"]
+CMD ["sh", "-c", "if [ -f dist/scripts/migration-run.js ]; then node dist/scripts/migration-run.js; elif [ -f dist/migration-run.js ]; then node dist/migration-run.js; else echo 'Migration runner not found, skipping migrations.'; fi && node dist/main.js"]
